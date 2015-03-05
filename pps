@@ -1,3 +1,11 @@
 #!/bin/bash
 
 echo "PPS"
+
+pid=$1
+name=`grep Name: /proc/$pid/status`
+state=`grep State: /proc/$pid/status`
+
+echo "$pid"
+echo "$name"
+echo "$state"
