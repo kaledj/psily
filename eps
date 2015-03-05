@@ -1,3 +1,5 @@
 #!/bin/bash
 
-echo "EPS"
+for process in $(find /proc -mindepth 0 -maxdepth 1 -type d); do
+    echo $process
+done
