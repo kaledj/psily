@@ -1,2 +1,2 @@
 # psily
-A usefull reimplementation of the ps program.
+A useful reimplementation of the ps program.
