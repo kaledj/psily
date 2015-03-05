@@ -1,0 +1,23 @@
+#!/bin/bash
+
+while getopts "pUeC" opt; do
+    case "$opt" in
+    p)
+        pps $@
+        printf "Displays information about processes with the given PID.\n"
+        exit 0
+        ;;
+    U)
+        printf "Displays information about processes that are owned by the indicated userid.\n"
+        exit 0
+        ;;
+    e)
+        printf "Displays information about every process in the system.\n"
+        exit 0
+        ;;
+    C)
+        printf "Displays information about every process that was started at the command line.\n"
+        exit 0
+        ;;
+    esac
+done
