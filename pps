@@ -5,7 +5,13 @@ echo "PPS"
 pid=$1
 name=`grep Name: /proc/$pid/status`
 state=`grep State: /proc/$pid/status`
+stat_file=`cat /proc/$pid/stat`
+read -r -a stat <<< "$stat_file"
+tty_nr="${stat[6]}"
+
+# sudo cat /proc/tty/drivers
 
 echo "$pid"
 echo "$name"
 echo "$state"
+echo "$tty_nr"
