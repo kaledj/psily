@@ -1,5 +1,8 @@
 #!/bin/bash
 
+printf "%5s %-8s %8s %s\n" "PID" "TTY" "TIME" "CMD"
+
 for process in $(find /proc -mindepth 0 -maxdepth 1 -type d); do
     echo $process
+    #echo $(basename $process)
 done

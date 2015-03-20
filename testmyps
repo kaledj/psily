@@ -1,0 +1,28 @@
+#!/bin/bash
+
+while getopts "pUeC" opt; do
+    case "$opt" in
+    p)
+        myprogram='pps $@'
+        realprogram='ps -p'
+        ;;
+    U)
+        myprogram='ups $@'
+        realprogram='ps -U '$2
+        ;;
+    e)
+        myprogram='eps $@'
+        realprogram='ps -e'
+        ;;
+    C)
+        myprogram='cps $@'
+        realprogram='ps -C '$2
+        ;;
+    esac
+
+    $myprogram $@ > myoutput
+    $realprogram > realoutput
+    diff myoutput realoutput
+    rm myoutput realoutput
+    exit 0
+done
