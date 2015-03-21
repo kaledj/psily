@@ -22,7 +22,7 @@ while getopts "pUeC" opt; do
 
     $myprogram $@ > myoutput
     $realprogram > realoutput
-    diff myoutput realoutput
+    diff -y myoutput realoutput
     rm myoutput realoutput
     exit 0
 done
