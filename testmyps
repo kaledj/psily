@@ -1,26 +1,26 @@
 #!/bin/bash
 
-while getopts "pUeC" opt; do
+while getopts "p:U:eC:" opt; do
     case "$opt" in
     p)
-        myprogram='pps $@'
-        realprogram='ps -p'
+        myprogram='pps '$OPTARG
+        realprogram='ps -p '$OPTARG
         ;;
     U)
-        myprogram='ups $@'
-        realprogram='ps -U '$2
+        myprogram='ups '$OPTARG
+        realprogram='ps -U '$OPTARG
         ;;
     e)
-        myprogram='eps $@'
+        myprogram='eps'
         realprogram='ps -e'
         ;;
     C)
-        myprogram='cps $@'
-        realprogram='ps -C '$2
+        myprogram='cps '$OPTARG
+        realprogram='ps -C '$OPTARG
         ;;
     esac
 
-    $myprogram $@ > myoutput
+    $myprogram > myoutput
     $realprogram > realoutput
     diff -y myoutput realoutput
     rm myoutput realoutput

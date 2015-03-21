@@ -1,18 +1,16 @@
 #!/bin/bash
 
-user=$1
-uid=$(id -u $user)
+givenpids=($@)
+givenpids=("${givenpids[@]:1}")
 
 printf "%5s %-8s %8s %s\n" "PID" "TTY" "TIME" "CMD"
 
-find /proc -maxdepth 1 -type d -regex '^/proc/[0-9]+$' -print0 | while read -d $'\0' process
-do
+for givenpid in "${givenpids[@]}"; do
+    process=$(find /proc -maxdepth 1 -type d -name "$givenpid")
+
     if [[ ! -e $process/stat ]]; then continue; fi
-
-    puid=$(awk '/^Uid:/{print $2; exit 0}' ${process}/status)
-    if [[ ! "$puid" = "$uid" ]]; then continue; fi
-
     read pid comm tty_nr <<< $(cut -d' ' -f1,2,7 ${process}/stat)
+
     comm=${comm:1:((${#comm}-2))}
 
     tty_nr=$(ttyParse $tty_nr)
@@ -31,4 +29,3 @@ do
 
     printf "%5s %-8s %8s %s\n" "$pid" "$tty" "time" "$comm"
 done
-
