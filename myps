@@ -1,26 +1,93 @@
 #!/bin/bash
 
+ttystring=$(tty)
+clk_tck=$(getconf CLK_TCK)
+
+default=true
 while getopts "p:U:eC:" opt; do
     case "$opt" in
     p)
-        new_pps $@
-        exit 0
+        pid_arg="$OPTARG"
+        default=false
         ;;
     U)
-        ups $OPTARG
-        exit 0
+        user_arg="$OPTARG"
+        default=false
         ;;
     e)
-        eps
-        exit 0
+        e_mode=true
+        default=false
         ;;
     C)
-        cps $OPTARG
-        exit 0
+        comm_arg="$OPTARG"
+        default=false
         ;;
     esac
 done
 
-# Default behavior
-dps
-exit 0
+printf "%5s %-8s %8s %s\n" "PID" "TTY" "TIME" "CMD"
+
+if [[ ! "$pid_arg" = "" ]]; then
+    find_regex='^/proc/'"$pid_arg"'$'
+else
+    find_regex='^/proc/[0-9]+$'
+fi
+
+find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0' process; do
+    # Make sure it still exists
+    if [[ ! -e $process/stat ]]; then continue; fi
+
+    if [[ "$default" = true ]]; then
+         # Check if EUID=euid
+         euid=$(awk '/^Uid:/{print $3; exit 0}' ${process}/status)
+         if [[ ! "$EUID" = "$euid" ]]; then continue; fi
+    fi
+
+    if [[ ! "$user_arg" = "" ]]; then
+        user_id="$user_arg"
+        num_re='^[0-9]+$'
+        if [[ ! "$user_id" =~ $num_re ]]; then
+            user_id=$(id -u "$user_id")
+        fi
+        # Check if user_id=uid
+        uid=$(awk '/^Uid:/{print $2; exit 0}' ${process}/status)
+        if [[ ! "$user_id" = "$uid" ]]; then continue; fi
+    fi
+
+    # Parse stat
+    read pid comm tty_nr utime stime <<< $(cut -d' ' -f1,2,7,14,15 ${process}/stat)
+    comm=${comm:1:((${#comm}-2))}
+
+    # If C mode, check the command.
+    if [[ ! "$comm_arg" = "" ]]; then
+        if [[ ! "$comm" = "$comm_arg" ]]; then continue; fi
+    fi
+
+    # Parse TTY information
+    if [[ "$tty_nr" =~ "0" ]]; then
+        tty="?"
+    else
+        tty_nr=$(ttyParse $tty_nr)
+        read tty_maj tty_min <<< "$tty_nr"
+        case "$tty_maj" in
+            136)
+                tty="pts/"$tty_min
+                ;;
+            4)
+                tty="tty"$tty_min
+                ;;
+        esac
+    fi
+
+    if [[ "$default" = true ]]; then
+        # Only show process from same controlling terminal
+        if [[ ! "$ttystring" =~ "$tty" ]]; then continue; fi
+    fi
+
+    total_time=$((($utime+$stime)/$clk_tck))
+    seconds=$((total_time%60))
+    minutes=$((total_time/60%60))
+    hours=$((total_time/60/60))
+    printf "%5s %-8s %02d:%02d:%02d %s\n" "$pid" "$tty" "$hours" "$minutes" "$seconds" "$comm"
+
+done
