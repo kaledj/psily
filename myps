@@ -18,9 +18,9 @@ while getopts "p:U:eC:" opt; do
         cps $OPTARG
         exit 0
         ;;
-    ?)
-        printf "Unknown option %s\n" "$opt"
-        exit 1
-        ;;
     esac
 done
+
+# Default behavior
+dps
+exit 0

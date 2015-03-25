@@ -10,11 +10,9 @@ do
     read pid comm tty_nr <<< $(cut -d' ' -f1,2,7 ${process}/stat)
     comm=${comm:1:((${#comm}-2))}
 
-    time=0
-    tty_nr="0 0"
-    #time=$(timeParse $process/stat)
-    #tty_nr=$(ttyParse $tty_nr)
-    #read tty_maj tty_min <<< "$tty_nr"
+    time=$(timeParse $process/stat)
+    tty_nr=$(ttyParse $tty_nr)
+    read tty_maj tty_min <<< "$tty_nr"
     case "$tty_maj" in
         0)
             tty="?"
