@@ -2,19 +2,18 @@
 
 printf "%5s %-8s %8s %s\n" "PID" "TTY" "TIME" "CMD"
 
-
 find /proc -maxdepth 1 -type d -regex '^/proc/[0-9]+$' -print0 | while read -d $'\0' process
 do
-    #read pid comm tty_nr <<< $(awk '{print $1; print $2; print $7}' ${process}/stat)
     if [[ ! -e $process/stat ]]; then continue; fi
+
+    euid=$(awk '/^Uid:/{print $3; exit 0}' ${process}/status)
+    if [[ ! "$puid" = "$uid" ]]; then continue; fi
+
     read pid comm tty_nr <<< $(cut -d' ' -f1,2,7 ${process}/stat)
     comm=${comm:1:((${#comm}-2))}
 
-    time=0
-    tty_nr="0 0"
-    #time=$(timeParse $process/stat)
-    #tty_nr=$(ttyParse $tty_nr)
-    #read tty_maj tty_min <<< "$tty_nr"
+    tty_nr=$(ttyParse $tty_nr)
+    read tty_maj tty_min <<< "$tty_nr"
     case "$tty_maj" in
         0)
             tty="?"
@@ -27,6 +26,6 @@ do
             ;;
     esac
 
-    printf "%5s %-8s %8s %s\n" "$pid" "$tty" "$time" "$comm"
+    printf "%5s %-8s %8s %s\n" "$pid" "$tty" "time" "$comm"
 done
 
