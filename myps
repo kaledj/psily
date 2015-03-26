@@ -22,11 +22,14 @@ while getopts "p:U:eC:" opt; do
         comm_arg="$OPTARG"
         default=false
         ;;
+    \?)
+        exit 0
     esac
 done
 
 printf "%5s %-8s %8s %s\n" "PID" "TTY" "TIME" "CMD"
 
+# Search for either all processes or a single process.
 if [[ ! "$pid_arg" = "" ]]; then
     find_regex='^/proc/'"$pid_arg"'$'
 else
@@ -37,12 +40,14 @@ find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0
     # Make sure it still exists
     if [[ ! -e $process/stat ]]; then continue; fi
 
+    # Default mode
     if [[ "$default" = true ]]; then
          # Check if EUID=euid
          euid=$(awk '/^Uid:/{print $3; exit 0}' ${process}/status)
          if [[ ! "$EUID" = "$euid" ]]; then continue; fi
     fi
 
+    # -U mode. Skips processes that arent owned by the given user.
     if [[ ! "$user_arg" = "" ]]; then
         user_id="$user_arg"
         num_re='^[0-9]+$'
@@ -54,7 +59,7 @@ find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0
         if [[ ! "$user_id" = "$uid" ]]; then continue; fi
     fi
 
-    # Parse stat
+    # Parse stat file.
     read pid comm tty_nr utime stime <<< $(cut -d' ' -f1,2,7,14,15 ${process}/stat)
     comm=${comm:1:((${#comm}-2))}
 
@@ -64,7 +69,7 @@ find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0
     fi
 
     # Parse TTY information
-    if [[ "$tty_nr" =~ "0" ]]; then
+    if [[ "$tty_nr" = "0" ]]; then
         tty="?"
     else
         tty_nr=$(./ttyParse $tty_nr)
@@ -79,11 +84,10 @@ find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0
         esac
     fi
 
-    if [[ "$default" = true ]]; then
-        # Only show process from same controlling terminal
-        if [[ ! "$ttystring" =~ "$tty" ]]; then continue; fi
-    fi
+    # Only show process from same controlling terminal in default mode.
+    if [[ ! "$ttystring" =~ "$tty" && "$default" = true ]]; then continue; fi
 
+    # Calculate time field and print line.
     total_time=$((($utime+$stime)/$clk_tck))
     seconds=$((total_time%60))
     minutes=$((total_time/60%60))
