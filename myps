@@ -67,7 +67,7 @@ find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0
     if [[ "$tty_nr" =~ "0" ]]; then
         tty="?"
     else
-        tty_nr=$(ttyParse $tty_nr)
+        tty_nr=$(./ttyParse $tty_nr)
         read tty_maj tty_min <<< "$tty_nr"
         case "$tty_maj" in
             136)
