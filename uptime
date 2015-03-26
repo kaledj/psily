@@ -13,6 +13,12 @@ total_time=$((($utime+$stime)/$clk_tck))
 
 seconds=$((total_time%60))
 minutes=$((total_time/60%60))
-hours=$((total_time/60/60))
+hours=$((total_time/60/60%24))
+days=$((total_time/60/60/24))
 
-printf "%02d:%02d:%02d\n" $hours $minutes $seconds
+if [[ $days -gt 0 ]]; 
+then
+    printf "%d-%02d:%02d:%02d\n" $days $hours $minutes $seconds
+else
+    printf "%02d:%02d:%02d\n" $hours $minutes $seconds
+fi

@@ -91,7 +91,13 @@ find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0
     total_time=$((($utime+$stime)/$clk_tck))
     seconds=$((total_time%60))
     minutes=$((total_time/60%60))
-    hours=$((total_time/60/60))
-    printf "%5s %-8s %02d:%02d:%02d %s\n" "$pid" "$tty" "$hours" "$minutes" "$seconds" "$comm"
+    hours=$((total_time/60/60%24))
+    days=$((total_time/60/60/24))
 
+    if [[ $days -gt 0 ]]; 
+    then
+        printf "%5s %-8s %d-%02d:%02d:%02d %s\n" "$pid" "$tty" "$days" "$hours" "$minutes" "$seconds" "$comm"
+    else
+        printf "%5s %-8s %02d:%02d:%02d %s\n" "$pid" "$tty" "$hours" "$minutes" "$seconds" "$comm"
+    fi
 done
