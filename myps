@@ -1,5 +1,14 @@
 #!/bin/bash
-
+if [ ! -f ttyParse ]; then
+  echo "This will not work until compiled. run make"
+  echo "Do you want me to do that for you? (y/n)" 
+  read choice
+  if [ $choice == "y" ]; then 
+    make
+  else 
+  exit
+  fi
+fi
 ttystring=$(tty)
 clk_tck=$(getconf CLK_TCK)
 
