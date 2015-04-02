@@ -9,8 +9,8 @@ if [ ! -f ttyParse ]; then
   exit
   fi
 fi
-ttystring=`tty`
-clk_tck=`getconf CLK_TCK`
+ttystring=$(tty)
+clk_tck=$(getconf CLK_TCK)
 
 default=true
 while getopts "p:U:eC:" opt; do
@@ -52,7 +52,7 @@ find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0
     # Default mode
     if [[ "$default" = true ]]; then
          # Check if EUID=euid
-         euid=`awk '/^Uid:/{print $3; exit 0}' ${process}/status`
+         euid=$(awk '/^Uid:/{print $3; exit 0}' ${process}/status)
          if [[ ! "$EUID" = "$euid" ]]; then continue; fi
     fi
 
@@ -61,10 +61,10 @@ find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0
         user_id="$user_arg"
         num_re='^[0-9]+$'
         if [[ ! "$user_id" =~ $num_re ]]; then
-            user_id=`id -u "$user_id"`
+            user_id=$(id -u "$user_id")
         fi
         # Check if user_id=uid
-        uid=`awk '/^Uid:/{print $2; exit 0}' ${process}/status`
+        uid=$(awk '/^Uid:/{print $2; exit 0}' ${process}/status)
         if [[ ! "$user_id" = "$uid" ]]; then continue; fi
     fi
 
@@ -81,7 +81,7 @@ find /proc -maxdepth 1 -type d -regex "$find_regex" -print0 | while read -d $'\0
     if [[ "$tty_nr" = "0" ]]; then
         tty="?"
     else
-        tty_nr=`./ttyParse $tty_nr`
+        tty_nr=$(./ttyParse $tty_nr)
         read tty_maj tty_min <<< "$tty_nr"
         case "$tty_maj" in
             136)
